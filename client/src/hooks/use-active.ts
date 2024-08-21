@@ -9,6 +9,7 @@ export function useActive(time: number) {
     ];
 
     useEffect(() => {
+        //@ts-ignore
         const handleEvent = (event: any) => {
             setIsActive(true);
             if (timer.current) {
