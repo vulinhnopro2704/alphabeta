@@ -17,10 +17,12 @@ const Counter: React.FC = () => {
     };
 
     return (
-        <div>
+        <div className='flex flex-col items-center gap-5'>
             <h1>Counter: {count}</h1>
-            <button onClick={handleIncrement}>Increment</button>
-            <button onClick={handleDecrement}>Decrement</button>
+            <div className='flex gap-2 text-black'>
+                <button className='p-2 bg-white rounded' onClick={handleIncrement}>Increment</button>
+                <button className='p-2 bg-white rounded' onClick={handleDecrement}>Decrement</button>
+            </div>
         </div>
     );
 };
