@@ -3,6 +3,7 @@
 # Learn more about .gitignore:
 #     https://www.atlassian.com/git/tutorials/saving-changes/gitignore
 # Node artifact files
+.idea
 node_modules/
 dist/
 # Compiled Java class files
@@ -15,7 +16,6 @@ dist/
 *.jar
 # Maven
 target/
-dist/
 # JetBrains IDE
 .idea/
 # Unit test reports
