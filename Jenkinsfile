@@ -28,7 +28,7 @@ pipeline{
                     }
                     dir ('client') {
                         nodejs('Node18'){
-                            sh "npm ci && npm run build${BUILD_MODE}"
+                            sh "npm ci && npm run build" //INFO: Shouble have build mode later
                         }
                     }
                 }
