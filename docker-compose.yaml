@@ -1,0 +1,105 @@
+version: "3.9"
+services:
+  server-staging:
+    image: "avvduong/alphabeta.server:staging"
+    container_name: "server-staging"
+    env_file:
+      - .env.staging
+    profiles: [ 'staging' ]
+    ports:
+      - "8080"
+    networks:
+      - "alphabeta"
+    labels:
+      - "traefik.http.routers.alphabeta-server-staging-alphabeta.rule=(PathPrefix(`/staging/api`) || PathPrefix(`/staging/swagger-ui`) || PathPrefix(`/staging/api-docs/`))"
+      - "traefik.http.middlewares.alphabeta-server-staging-middleware.replacepathregex.regex=^/staging/api/(.*)"
+      - "traefik.http.middlewares.alphabeta-server-staging-middleware.replacepathregex.replacement=/api/$$1"
+      - "traefik.http.routers.alphabeta-server-staging-alphabeta.middlewares=alphabeta-server-staging-middleware"
+
+  client-staging:
+    image: "avvduong/alphabeta.client:staging"
+    container_name: "client-staging"
+    profiles: [ 'staging' ]
+    ports:
+      - "80"
+    networks:
+      - "alphabeta"
+    depends_on:
+      - "server-staging"
+    labels:
+      - "traefik.http.routers.alphabeta-client-staging-alphabeta.rule=PathPrefix(`/staging`)"
+      - "traefik.http.middlewares.alphabeta-client-staging-middleware.replacepathregex.regex=^/staging(.*)"
+      - "traefik.http.middlewares.alphabeta-client-staging-middleware.replacepathregex.replacement=$$1"
+      - "traefik.http.routers.alphabeta-client-staging-alphabeta.middlewares=alphabeta-client-staging-middleware"
+
+  # Dev environment
+  server-dev:
+    image: "avvduong/alphabeta.server:develop"
+    container_name: "server-dev"
+    env_file:
+      - .env.develop
+    profiles: [ 'develop' ]
+    ports:
+      - "8080"
+    networks:
+      - "alphabeta"
+    labels:
+      - "traefik.http.routers.alphabeta-server-dev.rule=(PathPrefix(`/dev/api`) || PathPrefix(`/dev/h2-console`) || PathPrefix(`/dev/swagger-ui`) || PathPrefix(`/dev/api-docs`))"
+      - "traefik.http.middlewares.alphabeta-server-dev-h2console-middleware.replacepathregex.regex=^/dev/h2-console(.*)"
+      - "traefik.http.middlewares.alphabeta-server-dev-h2console-middleware.replacepathregex.replacement=/h2-console$$1"
+      - "traefik.http.middlewares.alphabeta-server-dev-api-middleware.replacepathregex.regex=^/dev/api/(.*)"
+      - "traefik.http.middlewares.alphabeta-server-dev-api-middleware.replacepathregex.replacement=/api/$$1"
+      - "traefik.http.routers.alphabeta-server-dev.middlewares=alphabeta-server-dev-h2console-middleware,alphabeta-server-dev-api-middleware"
+
+  client-dev:
+    image: "avvduong/alphabeta.client:develop"
+    container_name: "client-dev"
+    profiles: [ 'develop' ]
+    ports:
+      - "80"
+    networks:
+      - "alphabeta"
+    depends_on:
+      - "server-dev"
+    labels:
+      - "traefik.http.routers.alphabeta-client-dev-alphabeta.rule=PathPrefix(`/dev`) && !PathPrefix(`/dev/api`) && !PathPrefix(`/dev/h2-console`)"
+      - "traefik.http.middlewares.alphabeta-client-dev-middleware.replacepathregex.regex=^/dev(.*)"
+      - "traefik.http.middlewares.alphabeta-client-dev-middleware.replacepathregex.replacement=$$1"
+      - "traefik.http.routers.alphabeta-client-dev-alphabeta.middlewares=alphabeta-client-dev-middleware"
+
+  # Production environment
+  server-prod:
+    image: "avvduong/alphabeta.server:master"
+    container_name: "server-prod"
+    env_file:
+      - .env.master
+    profiles: [ 'production' ]
+    ports:
+      - "8080"
+    networks:
+      - "alphabeta"
+    labels:
+      - "traefik.http.routers.alphabeta-server-prod.rule=PathPrefix(`/api`)"
+      - "traefik.http.middlewares.alphabeta-server-prod-api-middleware.replacepathregex.regex=^/api/(.*)"
+      - "traefik.http.middlewares.alphabeta-server-prod-api-middleware.replacepathregex.replacement=/api/$$1"
+      - "traefik.http.routers.alphabeta-server-prod-alphabeta.middlewares=alphabeta-server-prod-api-middleware"
+
+  client-prod:
+    image: "avvduong/alphabeta.client:master"
+    container_name: "client-prod"
+    profiles: [ 'production' ]
+    ports:
+      - "80"
+    networks:
+      - "alphabeta"
+    depends_on:
+      - "server-prod"
+    labels:
+      - "traefik.http.routers.alphabeta-client-prod-alphabeta.rule=PathPrefix(`/`)"
+      - "traefik.http.middlewares.alphabeta-client-prod-middleware.replacepathregex.regex=^(.*)"
+      - "traefik.http.middlewares.alphabeta-client-prod-middleware.replacepathregex.replacement=$$1"
+      - "traefik.http.routers.alphabeta-client-prod-alphabeta.middlewares=alphabeta-client-prod-middleware"
+networks:
+  alphabeta:
+    external: true
+    name: alphabeta
