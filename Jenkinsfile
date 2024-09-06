@@ -18,17 +18,14 @@ pipeline{
         stage('Build Client') {
             steps {
                 script{
-                    // Set default to staging for ticket purpose
-                    def BUILD_MODE = ':develop'
-                    if (env.BRANCH_NAME == 'staging'){
-                        BUILD_MODE = ':staging'
-                    }
-                    else if (env.BRANCH_NAME == 'master'){
-                        BUILD_MODE = ':master'
-                    }
-                    dir ('client') {
-                        nodejs('Node18'){
-                            sh "npm ci && npm run build" //INFO: Shouble have build mode later
+                    // Run the Node.js build process inside a Docker container
+                    docker.image('node:22-alpine3.19').inside('-u root:root') {
+                        dir('client') {
+                            sh 'pwd'
+                            sh 'npm ci'
+                            sh 'npm run build'
+                            // Verify dist directory creation
+                            sh 'ls -a'
                         }
                     }
                 }
