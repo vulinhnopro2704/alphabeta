@@ -5,8 +5,17 @@ pipeline{
         SSH_CREDENTIALS_ID = 'vm-user'
         SSH_HOST = '103.252.136.203'
         DOCKER_REGISTRY_URL = ''
+        PATH = "/usr/local/node/bin:$PATH"
     }
     stages{
+        stage('Check node version'){
+            steps{
+                sh 'node -v'
+                sh 'npm -v'
+                sh 'which node'
+                sh 'which npm'
+            }
+        }
         // Config based on your current branch name
         stage('Build & Test Server') {
             steps{
@@ -23,6 +32,7 @@ pipeline{
         }
         stage("Restore npm packages") {
             steps {
+                dir('client'){
                 // Writes lock-file to cache based on the GIT_COMMIT hash
                 writeFile file: "next-lock.cache", text: "$GIT_COMMIT"
 
@@ -35,11 +45,13 @@ pipeline{
                 ]) {
                     sh "npm ci"
                 }
+                }
             }
         }
 
         stage("Build") {
             steps {
+                dir('client'){
                 // Writes lock-file to cache based on the GIT_COMMIT hash
                 writeFile file: "next-lock.cache", text: "$GIT_COMMIT"
 
@@ -52,6 +64,7 @@ pipeline{
                 ]) {
                     // aka `next build`
                     sh "npm run build"
+                }
                 }
             }
         }
