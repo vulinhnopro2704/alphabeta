@@ -5,7 +5,7 @@ pipelines:
     develop:
       - step:
           name: Build & Test Server
-          image: openjdk:22
+          image: openjdk:17
           caches:
             - gradle
           script:
@@ -14,7 +14,6 @@ pipelines:
             - ./gradlew build
       - step:
           name: Restore npm packages
-          image: node:22
           caches:
             - node
           script:
@@ -22,7 +21,7 @@ pipelines:
             - npm ci
       - step:
           name: Build Client
-          image: node:22
+          image: node:20
           caches:
             - node
           script:
@@ -30,7 +29,6 @@ pipelines:
             - npm run build
       - step:
           name: Build And Publish Images
-          image: node:22
           script:
             - export VERSION=develop
             - cd client
@@ -53,7 +51,7 @@ pipelines:
     main:
       - step:
           name: Build & Test Server
-          image: openjdk:22
+          image: openjdk:17
           caches:
             - gradle
           script:
@@ -62,7 +60,6 @@ pipelines:
             - ./gradlew build
       - step:
           name: Restore npm packages
-          image: node:22
           caches:
             - node
           script:
@@ -70,7 +67,7 @@ pipelines:
             - npm ci
       - step:
           name: Build Client
-          image: node:22
+          image: node:20
           caches:
             - node
           script:
@@ -78,7 +75,6 @@ pipelines:
             - npm run build
       - step:
           name: Build And Publish Images
-          image: node:22
           script:
             - export VERSION=main
             - cd client
@@ -97,7 +93,7 @@ pipelines:
             - sshpass -p vulinhv11 ssh -p 8686 -o StrictHostKeyChecking=no lvtruong@103.173.66.200 "docker login -u vulinh2704 -p Ca!lmeL!nhpls270404"
             - sshpass -p vulinhv11 ssh -p 8686 -o StrictHostKeyChecking=no lvtruong@103.173.66.200 "docker compose --project-name alphabeta --profile production up -d --pull=always"
             - sshpass -p vulinhv11 ssh -p 8686 -o StrictHostKeyChecking=no lvtruong@103.173.66.200 "docker logout"
-
+            
 definitions:
   caches:
     gradle: ~/.gradle
