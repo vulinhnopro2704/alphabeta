@@ -50,13 +50,6 @@ pipelines:
 
     main:
       - step:
-          name: Restore npm packages
-          caches:
-            - node
-          script:
-            - echo $BITBUCKET_COMMIT > next-lock.cache
-            - npm ci
-      - step:
           name: Build Client
           image: node:20
           caches:
