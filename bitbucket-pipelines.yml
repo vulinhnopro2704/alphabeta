@@ -28,6 +28,9 @@ pipelines:
             - cd ..
       - step:
           name: Build And Publish Images
+          image: docker:20.10.7
+          services:
+            - docker
           script:
             - export VERSION=main
             - cd client
