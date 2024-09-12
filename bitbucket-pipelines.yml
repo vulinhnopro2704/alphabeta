@@ -3,18 +3,18 @@ image: atlassian/default-image:2
 pipelines:
   branches:
     develop:
-      - step: *build_server
-      - step: *restore_npm
-      - step: *build_client
-      - step: *build_and_publish
-      - step: *deploy_dev
+      - step: build_server
+      - step: restore_npm
+      - step: build_client
+      - step: build_and_publish
+      - step: deploy_dev
 
     main:
-      - step: *build_server
-      - step: *restore_npm
-      - step: *build_client
-      - step: *build_and_publish
-      - step: *deploy_prod
+      - step: build_server
+      - step: restore_npm
+      - step: build_client
+      - step: build_and_publish
+      - step: deploy_prod
 
 definitions:
   steps:
