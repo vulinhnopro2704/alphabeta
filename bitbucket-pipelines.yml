@@ -19,7 +19,7 @@ pipelines:
             - cd ..
       - step:
           name: Build & Test Server
-          image: openjdk:17
+          image: openjdk:17-bullseye
           script:
             - apt-get update && apt-get install -y findutils
             - cd server
