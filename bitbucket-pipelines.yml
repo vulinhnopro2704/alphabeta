@@ -21,6 +21,7 @@ pipelines:
           name: Build & Test Server
           image: openjdk:17
           script:
+            - apt-get update && apt-get install -y findutils
             - cd server
             - chmod +x gradlew
             - ./gradlew build
