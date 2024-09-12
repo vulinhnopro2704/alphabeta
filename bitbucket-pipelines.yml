@@ -2,52 +2,6 @@ image: atlassian/default-image:3
 
 pipelines:
   branches:
-    develop:
-      - step:
-          name: Build & Test Server
-          image: openjdk:17
-          caches:
-            - gradle
-          script:
-            - cd server
-            - chmod +x gradlew
-            - ./gradlew build
-      - step:
-          name: Restore npm packages
-          caches:
-            - node
-          script:
-            - echo $BITBUCKET_COMMIT > next-lock.cache
-            - npm ci
-      - step:
-          name: Build Client
-          image: node:20
-          caches:
-            - node
-          script:
-            - echo $BITBUCKET_COMMIT > next-lock.cache
-            - npm run build
-      - step:
-          name: Build And Publish Images
-          script:
-            - export VERSION=develop
-            - cd client
-            - docker build . -t vulinh2704/alphabeta.client:${VERSION}
-            - cd ../server
-            - docker build . -t vulinh2704/alphabeta.server:${VERSION}
-            - docker login -u vulinh2704 -p Ca!lmeL!nhpls270404
-            - docker push vulinh2704/alphabeta.client:${VERSION}
-            - docker push vulinh2704/alphabeta.server:${VERSION}
-      - step:
-          name: Deploy to Development
-          deployment: development
-          script:
-            - apt-get update && apt-get install -y sshpass
-            - sshpass -p vulinhv11 scp -P 8686 -o StrictHostKeyChecking=no ./docker-compose.yaml lvtruong@103.173.66.200:/home/alphabeta
-            - sshpass -p vulinhv11 ssh -p 8686 -o StrictHostKeyChecking=no lvtruong@103.173.66.200 "docker login -u vulinh2704 -p Ca!lmeL!nhpls270404"
-            - sshpass -p vulinhv11 ssh -p 8686 -o StrictHostKeyChecking=no lvtruong@103.173.66.200 "docker compose --project-name alphabeta --profile develop up -d --pull=always"
-            - sshpass -p vulinhv11 ssh -p 8686 -o StrictHostKeyChecking=no lvtruong@103.173.66.200 "docker logout"
-
     main:
       - step:
           name: Build Client
@@ -55,8 +9,11 @@ pipelines:
           caches:
             - node
           script:
+            - pwd
+            - cd client
             - echo $BITBUCKET_COMMIT > next-lock.cache
             - npm run build
+            - cd ..
       - step:
           name: Build & Test Server
           image: openjdk:17
@@ -66,6 +23,7 @@ pipelines:
             - cd server
             - chmod +x gradlew
             - ./gradlew build
+            - cd ..
       - step:
           name: Build And Publish Images
           script:
