@@ -3,104 +3,82 @@ image: atlassian/default-image:2
 pipelines:
   branches:
     develop:
-      - step:
-          name: Build & Test Server
-          caches:
-            - gradle
-          script:
-            - cd server
-            - chmod +x gradlew
-            - ./gradlew build
-
-      - step:
-          name: Restore npm packages
-          caches:
-            - node
-          script:
-            - writeFile -f next-lock.cache -d "$BITBUCKET_COMMIT"
-            - npm ci
-
-      - step:
-          name: Build Client
-          caches:
-            - node
-          script:
-            - writeFile -f next-lock.cache -d "$BITBUCKET_COMMIT"
-            - npm run build
-
-      - step:
-          name: Build & Publish Docker Images
-          script:
-            - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-            - docker build -t avvduong/alphabeta.client:develop ./client
-            - docker build -t avvduong/alphabeta.server:develop ./server
-            - docker push avvduong/alphabeta.client:develop
-            - docker push avvduong/alphabeta.server:develop
-
-      - step:
-          name: Deploy to Development Server
-          deployment: development
-          script:
-            - pipe: atlassian/scp-deploy:0.3.10
-              variables:
-                USER: $SSH_USERNAME
-                SERVER: $SSH_HOST
-                REMOTE_PATH: "/home/alphabeta"
-                LOCAL_PATH: "./docker-compose.yaml"
-            - sshpass -p $SSH_PASSWORD ssh -o StrictHostKeyChecking=no $SSH_USERNAME@$SSH_HOST 'docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD'
-            - sshpass -p $SSH_PASSWORD ssh -o StrictHostKeyChecking=no $SSH_USERNAME@$SSH_HOST 'docker compose --project-name alphabeta --profile develop up -d --pull=always'
-            - sshpass -p $SSH_PASSWORD ssh -o StrictHostKeyChecking=no $SSH_USERNAME@$SSH_HOST 'docker logout'
+      - step: *build_server
+      - step: *restore_npm
+      - step: *build_client
+      - step: *build_and_publish
+      - step: *deploy_dev
 
     main:
-      - step:
-          name: Build & Test Server
-          caches:
-            - gradle
-          script:
-            - cd server
-            - chmod +x gradlew
-            - ./gradlew build
-
-      - step:
-          name: Restore npm packages
-          caches:
-            - node
-          script:
-            - writeFile -f next-lock.cache -d "$BITBUCKET_COMMIT"
-            - npm ci
-
-      - step:
-          name: Build Client
-          caches:
-            - node
-          script:
-            - writeFile -f next-lock.cache -d "$BITBUCKET_COMMIT"
-            - npm run build
-
-      - step:
-          name: Build & Publish Docker Images
-          script:
-            - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-            - docker build -t avvduong/alphabeta.client:main ./client
-            - docker build -t avvduong/alphabeta.server:main ./server
-            - docker push avvduong/alphabeta.client:main
-            - docker push avvduong/alphabeta.server:main
-
-      - step:
-          name: Deploy to Production Server
-          deployment: production
-          script:
-            - pipe: atlassian/scp-deploy:0.3.10
-              variables:
-                USER: $SSH_USERNAME
-                SERVER: $SSH_HOST
-                REMOTE_PATH: "/home/alphabeta"
-                LOCAL_PATH: "./docker-compose.yaml"
-            - sshpass -p $SSH_PASSWORD ssh -o StrictHostKeyChecking=no $SSH_USERNAME@$SSH_HOST 'docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD'
-            - sshpass -p $SSH_PASSWORD ssh -o StrictHostKeyChecking=no $SSH_USERNAME@$SSH_HOST 'docker compose --project-name alphabeta --profile production up -d --pull=always'
-            - sshpass -p $SSH_PASSWORD ssh -o StrictHostKeyChecking=no $SSH_USERNAME@$SSH_HOST 'docker logout'
+      - step: *build_server
+      - step: *restore_npm
+      - step: *build_client
+      - step: *build_and_publish
+      - step: *deploy_prod
 
 definitions:
-  caches:
-    gradle: ~/.gradle
-    node: ~/.npm
+  steps:
+    - step: &build_server
+        name: Build & Test Server
+        image: openjdk:17
+        caches:
+          - gradle
+        script:
+          - cd server
+          - chmod +x gradlew
+          - ./gradlew build
+
+    - step: &restore_npm
+        name: Restore npm packages
+        image: node:22
+        caches:
+          - node
+        script:
+          - writeFile -f next-lock.cache -d "$BITBUCKET_COMMIT"
+          - npm ci
+
+    - step: &build_client
+        name: Build Client
+        image: node:22
+        caches:
+          - node
+        script:
+          - writeFile -f next-lock.cache -d "$BITBUCKET_COMMIT"
+          - npm run build
+
+    - step: &build_and_publish
+        name: Build & Publish Docker Images
+        script:
+          - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+          - docker build -t avvduong/alphabeta.client:${BITBUCKET_BRANCH} ./client
+          - docker build -t avvduong/alphabeta.server:${BITBUCKET_BRANCH} ./server
+          - docker push avvduong/alphabeta.client:${BITBUCKET_BRANCH}
+          - docker push avvduong/alphabeta.server:${BITBUCKET_BRANCH}
+
+    - step: &deploy_dev
+        name: Deploy to Development Server
+        deployment: development
+        script:
+          - pipe: atlassian/scp-deploy:0.3.10
+            variables:
+              USER: $SSH_USERNAME
+              SERVER: $SSH_HOST
+              REMOTE_PATH: "/home/alphabeta"
+              LOCAL_PATH: "./docker-compose.yaml"
+          - sshpass -p $SSH_PASSWORD ssh -o StrictHostKeyChecking=no $SSH_USERNAME@$SSH_HOST 'docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD'
+          - sshpass -p $SSH_PASSWORD ssh -o StrictHostKeyChecking=no $SSH_USERNAME@$SSH_HOST 'docker compose --project-name alphabeta --profile develop up -d --pull=always'
+          - sshpass -p $SSH_PASSWORD ssh -o StrictHostKeyChecking=no $SSH_USERNAME@$SSH_HOST 'docker logout'
+
+    - step: &deploy_prod
+        name: Deploy to Production Server
+        deployment: production
+        script:
+          - pipe: atlassian/scp-deploy:0.3.10
+            variables:
+              USER: $SSH_USERNAME
+              SERVER: $SSH_HOST
+              REMOTE_PATH: "/home/alphabeta"
+              LOCAL_PATH: "./docker-compose.yaml"
+          - sshpass -p $SSH_PASSWORD ssh -o StrictHostKeyChecking=no $SSH_USERNAME@$SSH_HOST 'docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD'
+          - sshpass -p $SSH_PASSWORD ssh -o StrictHostKeyChecking=no $SSH_USERNAME@$SSH_HOST 'docker compose --project-name alphabeta --profile production up -d --pull=always'
+          - sshpass -p $SSH_PASSWORD ssh -o StrictHostKeyChecking=no $SSH_USERNAME@$SSH_HOST 'docker logout'
