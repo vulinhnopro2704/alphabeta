@@ -50,15 +50,6 @@ pipelines:
 
     main:
       - step:
-          name: Build & Test Server
-          image: openjdk:17
-          caches:
-            - gradle
-          script:
-            - cd server
-            - chmod +x gradlew
-            - ./gradlew build
-      - step:
           name: Restore npm packages
           caches:
             - node
@@ -73,6 +64,15 @@ pipelines:
           script:
             - echo $BITBUCKET_COMMIT > next-lock.cache
             - npm run build
+      - step:
+          name: Build & Test Server
+          image: openjdk:17
+          caches:
+            - gradle
+          script:
+            - cd server
+            - chmod +x gradlew
+            - ./gradlew build
       - step:
           name: Build And Publish Images
           script:
