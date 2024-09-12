@@ -20,8 +20,6 @@ pipelines:
       - step:
           name: Build & Test Server
           image: openjdk:17
-          caches:
-            - gradle
           script:
             - cd server
             - chmod +x gradlew
@@ -50,5 +48,4 @@ pipelines:
             
 definitions:
   caches:
-    gradle: ~/.gradle
     node: node_modules
