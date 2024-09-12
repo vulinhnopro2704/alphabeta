@@ -5,6 +5,7 @@ pipelines:
     develop:
       - step:
           name: Build & Test Server
+          image: openjdk:22
           caches:
             - gradle
           script:
@@ -27,6 +28,7 @@ pipelines:
             - npm run build
       - step:
           name: Build And Publish Images
+          image: node:22
           script:
             - export VERSION=develop
             - cd client
