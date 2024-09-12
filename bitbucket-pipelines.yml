@@ -10,8 +10,11 @@ pipelines:
             - node
           script:
             - pwd
+            - ls -a
             - cd client
-            - echo $BITBUCKET_COMMIT > next-lock.cache
+            - pwd
+            - ls -a
+            - npm install
             - npm run build
             - cd ..
       - step:
