@@ -59,7 +59,7 @@ public class AuthServiceImpl implements AuthService {
             throw new AccountExistByEmailException("Username is already in use.");
         // Hash the password
         String hashedPassword = passwordEncoder.encode(signUpRequest.getPassword());
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         User user = User.builder()
                 .username(signUpRequest.getUsername())
                 .password(hashedPassword)
