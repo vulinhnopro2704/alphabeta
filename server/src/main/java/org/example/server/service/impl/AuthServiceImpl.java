@@ -6,6 +6,7 @@ import org.example.server.dto.Request.AuthRequest;
 import org.example.server.dto.Request.SignUpRequest;
 import org.example.server.dto.Response.ApiResponse;
 import org.example.server.dto.Response.LoginResponse;
+import org.example.server.entity.RefreshToken;
 import org.example.server.entity.User;
 import org.example.server.enums.Role;
 import org.example.server.exception.AccountExistByEmailException;
@@ -32,6 +33,7 @@ public class AuthServiceImpl implements AuthService {
     private final IJwtService jwtService;
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final JWTTokenService jwtTokenService;
 
     @Override
     public LoginResponse authenticate(AuthRequest loginRequest) {
@@ -44,17 +46,26 @@ public class AuthServiceImpl implements AuthService {
         }
         if (authentication.isAuthenticated()) {
             User user = userRepository.findByUsername(loginRequest.getUsername()).orElseThrow(() -> new BadCredentialsException("Authentication failed: Invalid credentials"));
+            //Before (no refresh token)
             var accessToken = jwtService.generatedClaim(user.getUsername(), List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name())));
+            //
+
+            //After has refresh token
+            var refreshToken = jwtTokenService.createRefreshToken(user.getUsername());
+
             return LoginResponse.builder()
                     .accessToken(accessToken)
+                    .refreshToken(refreshToken.getToken())
+                    .expiresIn((int) (refreshToken.getExpiryDate().toEpochMilli() - System.currentTimeMillis()))
+                    .tokenType("Bearer")
                     .build();
+            //
         } else {
             throw new BadCredentialsException("Authentication failed: Invalid credentials");
         }
     }
     @Override
     public ApiResponse<String> handleSignUpNewUser(SignUpRequest signUpRequest) {
-        List<User> existingUsers = userRepository.findAllByEmail(signUpRequest.getEmail());
         if(userRepository.existsByUsername(signUpRequest.getUsername()))
             throw new AccountExistByEmailException("Username is already in use.");
         // Hash the password
@@ -63,12 +74,35 @@ public class AuthServiceImpl implements AuthService {
         User user = User.builder()
                 .username(signUpRequest.getUsername())
                 .password(hashedPassword)
-                .fullName(signUpRequest.getFullname())
+                .fullName(signUpRequest.getFullName())
                 .email(signUpRequest.getEmail())
-                .dateOfBirth((signUpRequest.getDateofbirth() != null && !signUpRequest.getDateofbirth().isEmpty()) ? LocalDate.parse(signUpRequest.getDateofbirth(), formatter) : null)
+                .dateOfBirth((signUpRequest.getDateOfBirth() != null && !signUpRequest.getDateOfBirth().isEmpty()) ? LocalDate.parse(signUpRequest.getDateOfBirth(), formatter) : null)
                 .role(Role.USER)
                 .build();
         user = userRepository.save(user);
         return new ApiResponse<>(200, "User registered successfully", null);
+    }
+
+
+    // After add refresh token
+    @Override
+    public LoginResponse handleRefreshToken(String refreshToken) {
+        if (jwtTokenService.validateToken(refreshToken)) {
+            RefreshToken token = jwtTokenService.findByToken(refreshToken)
+                    .orElseThrow(() -> new BadCredentialsException("Not found refresh token in DB"));
+
+            RefreshToken verifiedToken = jwtTokenService.verifyExpiration(token);
+            User user = verifiedToken.getUser();
+
+            String newAccessToken = jwtTokenService.generateAccessToken(user, List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name())));
+            RefreshToken newRefreshToken = jwtTokenService.createRefreshToken(user.getUsername());
+
+            return LoginResponse.builder()
+                    .accessToken(newAccessToken)
+                    .refreshToken(newRefreshToken.getToken())
+                    .build();
+        } else {
+            throw new BadCredentialsException("Invalid refresh token");
+        }
     }
 }
