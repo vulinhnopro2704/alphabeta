@@ -63,13 +63,11 @@ public class JwtServiceImpl implements IJwtService {
         return Jwts.builder()
                 .claim("Authorization", claims)
                 .subject(username)
-                .issuer("course-for-you-backend-app")
-                .audience().add("course-for-you-client-app").and()
+                .issuer("alphabeta-backend-app")
+                .audience().add("alphabeta-client-app").and()
                 .issuedAt(issueDate)
                 .expiration(expirationDate)
                 .signWith(secret).compact();
 
     }
-
-
 }

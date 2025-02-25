@@ -9,4 +9,6 @@ public interface AuthService {
     LoginResponse authenticate(AuthRequest loginRequest);
 
     ApiResponse<String> handleSignUpNewUser(SignUpRequest signUpRequest);
+
+    LoginResponse handleRefreshToken(String refreshToken);
 }
