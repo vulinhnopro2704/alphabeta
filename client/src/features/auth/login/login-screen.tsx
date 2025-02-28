@@ -1,22 +1,29 @@
 import loginFormSchema from '@/schemas/login-form-schema';
-import { useForm, FormProvider, Form } from 'react-hook-form';
+import { useForm, FormProvider } from 'react-hook-form';
 import type { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion } from 'framer-motion';
-import {
-    FormControl,
-    FormDescription,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import AnimatedButton from '@/components/animated-button';
 import { FaGoogle, FaFacebook } from 'react-icons/fa';
 import SmoothButton from '@/components/smooth-button';
+import InputFormItem from '@/components/form-item/input-form-item';
+import { FormField } from '@/components/ui/form';
+import { useLoginMutation } from '../auth-api-slice';
+import { toast } from 'sonner';
+import { Link, useNavigate } from 'react-router';
+import { useEffect } from 'react';
+import { useAppSelector } from '@/app/hooks';
 
 export default function LoginScreen() {
+    const token = useAppSelector((state) => state.auth.accessToken);
+    const navigate = useNavigate();
+    useEffect(() => {
+        if (token) {
+            toast.success('Đã đăng nhập');
+            navigate('/');
+        }
+    }, [token, navigate]);
+    const [login] = useLoginMutation();
     const form = useForm<z.infer<typeof loginFormSchema>>({
         resolver: zodResolver(loginFormSchema),
         defaultValues: {
@@ -25,12 +32,34 @@ export default function LoginScreen() {
         },
     });
 
-    // 2. Define a submit handler.
-    function onSubmit(values: z.infer<typeof loginFormSchema>) {
-        // Do something with the form values.
-        // ✅ This will be type-safe and validated.
-        console.log(values);
+    async function onSubmit(values: z.infer<typeof loginFormSchema>) {
+        try {
+            const result = await login(values).unwrap();
+            if (result.status.toString().startsWith('2')) {
+                toast.success('Đăng nhập thành công');
+                navigate('/');
+            } else {
+                toast.error('Đăng nhập thất bại' + result.message);
+            }
+        } catch (error) {
+            toast.error(('Đăng nhập thất bại' + error) as string);
+        }
     }
+
+    // Danh sách các trường input
+    const fields = [
+        {
+            name: 'username',
+            label: 'Tên đăng nhập',
+            description: 'Nhập tên đăng nhập của bạn',
+        },
+        {
+            name: 'password',
+            label: 'Mật khẩu',
+            description: 'Nhập mật khẩu của bạn',
+            type: 'password',
+        },
+    ];
 
     return (
         <motion.div
@@ -44,45 +73,26 @@ export default function LoginScreen() {
                     <h3 className="text-center text-3xl font-bold">
                         Đăng nhập
                     </h3>
-                    <Form
+                    <form
                         onSubmit={form.handleSubmit(onSubmit)}
                         className="space-y-8"
                     >
-                        <FormField
-                            control={form.control}
-                            name="username"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Username</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            placeholder="Fill your username"
-                                            {...field}
-                                        />
-                                    </FormControl>
-                                    <FormDescription>
-                                        Fill your username
-                                    </FormDescription>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="password"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Password</FormLabel>
-                                    <FormControl>
-                                        <Input type="password" {...field} />
-                                    </FormControl>
-                                    <FormDescription>
-                                        Fill your password
-                                    </FormDescription>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                        {fields.map(({ name, label, description, type }) => (
+                            <FormField
+                                key={name}
+                                control={form.control}
+                                name={name as 'username' | 'password'}
+                                render={({ field }) => (
+                                    <InputFormItem
+                                        field={field}
+                                        label={label}
+                                        description={description}
+                                        type={type}
+                                    />
+                                )}
+                            />
+                        ))}
+
                         <div className="flex justify-between items-center">
                             <AnimatedButton> Đăng nhập </AnimatedButton>
                             <button
@@ -92,21 +102,23 @@ export default function LoginScreen() {
                                 Quên mật khẩu?
                             </button>
                         </div>
-                    </Form>
+                    </form>
                 </FormProvider>
+                <Link to="/signup" className="text-center text-btn-blue-dark">
+                    Đăng ký tài khoản mới
+                </Link>
+                {/* Đăng nhập bằng Google/Facebook */}
                 <div className="flex flex-col text-base gap-3">
-                    <SmoothButton className="w-full">
-                        <div className="flex  text-base items-center justify-center gap-2">
-                            <FaGoogle size={18} />
-                            Đăng nhập với Google
-                        </div>
-                    </SmoothButton>
-                    <SmoothButton className="w-full">
-                        <div className="flex text-base items-center justify-center gap-2">
-                            <FaFacebook size={18} />
-                            Login via facebook
-                        </div>
-                    </SmoothButton>
+                    {[
+                        { icon: FaGoogle, text: 'Đăng nhập với Google' },
+                        { icon: FaFacebook, text: 'Login via Facebook' },
+                    ].map(({ icon: Icon, text }) => (
+                        <SmoothButton key={text} className="w-full">
+                            <div className="flex text-base items-center justify-center gap-2">
+                                <Icon size={18} /> {text}
+                            </div>
+                        </SmoothButton>
+                    ))}
                 </div>
             </div>
         </motion.div>

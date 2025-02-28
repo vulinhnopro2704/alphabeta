@@ -1,13 +1,13 @@
 import { z } from 'zod';
 
 const loginFormSchema = z.object({
-    username: z.string().email('Invalid email address'),
+    username: z.string(),
     password: z
         .string()
-        .min(8, 'Password must be at least 8 characters long')
+        .min(8, 'Mật khẩu phải có ít nhất 8 ký tự')
         .regex(
-            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-            'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
+            /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d).+$/,
+            'Mật khẩu phải chứa ít nhất một chữ cái viết hoa, một chữ cái viết thường, một chữ số và một ký tự đặc biệt',
         ),
 });
 

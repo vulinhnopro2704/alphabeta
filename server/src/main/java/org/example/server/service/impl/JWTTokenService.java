@@ -9,19 +9,24 @@ import org.example.server.entity.RefreshToken;
 import org.example.server.entity.User;
 import org.example.server.repository.RefreshTokenRepository;
 import org.example.server.repository.UserRepository;
+import org.example.server.service.IJwtService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.crypto.SecretKey;
 import java.time.Instant;
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 
 @Service
-public class JWTTokenService {
+public class JWTTokenService implements IJwtService {
     @Autowired
     private RefreshTokenRepository refreshTokenRepository;
 
@@ -130,5 +135,11 @@ public class JWTTokenService {
 
     public void deleteByUser(User user) {
         refreshTokenRepository.deleteByUser(user);
+    }
+
+    @Override
+    @Transactional
+    public void deleteByToken(String token) {
+        refreshTokenRepository.deleteByToken(token);
     }
 }
