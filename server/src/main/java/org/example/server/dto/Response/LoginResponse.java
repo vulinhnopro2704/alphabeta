@@ -1,6 +1,7 @@
 package org.example.server.dto.Response;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
+import org.springframework.beans.factory.annotation.Value;
 
 @Getter
 @Setter
@@ -13,7 +14,6 @@ public class LoginResponse {
     @JsonProperty("token_type")
     private String tokenType = "Bearer";
     @JsonProperty("expires_in")
-    private int expiresIn = 3600;
-    @JsonProperty("refresh_token")
-    private String refreshToken;
+    @Value("${alphabeta.jwt.expiration}")
+    private int expiresIn;
 }
