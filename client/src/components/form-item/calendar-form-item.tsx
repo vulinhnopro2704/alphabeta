@@ -1,34 +1,24 @@
-import {
-    FormControl,
-    FormDescription,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from '../ui/form';
+import { FormControl, FormItem, FormLabel, FormMessage } from '../ui/form';
 import { Popover, PopoverTrigger } from '@radix-ui/react-popover';
 import { Button } from '../ui/button';
 import { cn } from '@/lib/utils';
 import { PopoverContent } from '../ui/popover';
-import { Calendar } from '../ui/calendar';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { FormFieldProps } from './common-type';
+import { CustomCalendar } from '../ui/calendar';
 
-export default function CalendarFormItem({
-    field,
-    label,
-    description,
-}: FormFieldProps) {
+export default function CalendarFormItem({ field, label }: FormFieldProps) {
     return (
         <FormItem className="flex flex-col">
-            <FormLabel>{label}</FormLabel>
+            <FormLabel className="text-white">{label}</FormLabel>
             <Popover>
                 <PopoverTrigger asChild>
                     <FormControl>
                         <Button
                             variant={'outline'}
                             className={cn(
-                                'w-[240px] pl-3 text-left font-normal',
+                                'w-[240px] pl-3 text-left font-normal text-white bg-gray-800 hover:bg-gray-700 border-gray-600 hover:text-white',
                                 !field.value && 'text-muted-foreground',
                             )}
                         >
@@ -41,8 +31,8 @@ export default function CalendarFormItem({
                         </Button>
                     </FormControl>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
+                <PopoverContent className="w-auto p-0 bg-gray-800 border-gray-600">
+                    <CustomCalendar
                         mode="single"
                         selected={field.value}
                         onSelect={field.onChange}
@@ -53,8 +43,7 @@ export default function CalendarFormItem({
                     />
                 </PopoverContent>
             </Popover>
-            <FormDescription>{description}</FormDescription>
-            <FormMessage />
+            <FormMessage className="text-white" />
         </FormItem>
     );
 }
