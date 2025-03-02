@@ -37,8 +37,7 @@ public class SecurityConfig {
 
     @Value("${alphabeta.frontend.url}")
     private String frontEndUrl;
-    @Value("${alphabeta.h2path}")
-    private String h2Console;
+    private String h2Console = "/h2-console/**";
 
     @Bean
     PasswordEncoder passwordEncoder() {
