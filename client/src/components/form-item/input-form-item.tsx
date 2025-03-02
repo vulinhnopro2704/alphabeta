@@ -13,7 +13,7 @@ export default function InputFormItem({
 }: InputFormItemProps) {
     return (
         <FormItem>
-            <FormLabel>{label}</FormLabel>
+            <FormLabel className="block mb-3">{label}</FormLabel>
             <FormControl>
                 <Input
                     type={type}

@@ -10,7 +10,7 @@ import SelectFormItem from '@/components/form-item/select-form-item';
 import InputFormItem from '@/components/form-item/input-form-item';
 import { SignupRequest, useSignUpMutation } from '../auth-api-slice';
 import { toast } from 'sonner';
-import { useNavigate } from 'react-router';
+import { useNavigate, Link } from 'react-router';
 
 export default function SignUpScreen() {
     const navigate = useNavigate();
@@ -95,75 +95,75 @@ export default function SignUpScreen() {
     ];
 
     return (
-        <div className="flex items-center text-base justify-center xl:w-4/12 md:w-5/12 sm:w-7/12 min-h-screen">
-            <motion.div
-                className="w-full max-w-md px-4 py-8 space-y-8 bg-white rounded-lg shadow-lg"
-                initial={{ opacity: 0, y: -50 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-            >
-                <FormProvider {...form}>
-                    <form
-                        onSubmit={form.handleSubmit(onSubmit)}
-                        className="space-y-2"
-                    >
-                        {fields.map(({ name, label, description, type }) => (
-                            <FormField
-                                key={name}
-                                control={form.control}
-                                name={
-                                    name as
-                                        | 'email'
-                                        | 'username'
-                                        | 'fullname'
-                                        | 'password'
-                                        | 'confirmPassword'
-                                }
-                                render={({ field }) => (
-                                    <InputFormItem
-                                        field={field}
-                                        label={label}
-                                        description={description}
-                                        type={type}
-                                    />
-                                )}
-                            />
-                        ))}
+        <motion.div
+            className="py-10 px-8 bg-background-dark shadow-2xl text-white rounded-2xl lg:w-1/3 md:w-1/2 w-4/5"
+            initial={{ opacity: 0, y: -50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+        >
+            <FormProvider {...form}>
+                <form
+                    onSubmit={form.handleSubmit(onSubmit)}
+                    className="w-full h-full flex flex-col gap-3"
+                >
+                    <h3 className="text-left text-2xl font-bold">Đăng ký</h3>
+                    {fields.map(({ name, label, description, type }) => (
+                        <FormField
+                            key={name}
+                            control={form.control}
+                            name={
+                                name as
+                                    | 'email'
+                                    | 'username'
+                                    | 'fullname'
+                                    | 'password'
+                                    | 'confirmPassword'
+                            }
+                            render={({ field }) => (
+                                <InputFormItem
+                                    field={field}
+                                    label={label}
+                                    description={description}
+                                    type={type}
+                                />
+                            )}
+                        />
+                    ))}
 
-                        <div className="flex justify-between items-center">
-                            <FormField
-                                control={form.control}
-                                name="gender"
-                                render={({ field }) => (
-                                    <SelectFormItem
-                                        label="Giới tính"
-                                        field={field}
-                                    />
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="dateofbirth"
-                                render={({ field }) => (
-                                    <CalendarFormItem
-                                        label="Ngày sinh"
-                                        field={field}
-                                    />
-                                )}
-                            />
-                        </div>
+                    <div className="flex justify-between items-center">
+                        <FormField
+                            control={form.control}
+                            name="gender"
+                            render={({ field }) => (
+                                <SelectFormItem
+                                    label="Giới tính"
+                                    field={field}
+                                />
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="dateofbirth"
+                            render={({ field }) => (
+                                <CalendarFormItem
+                                    label="Ngày sinh"
+                                    field={field}
+                                />
+                            )}
+                        />
+                    </div>
 
-                        <Button className="w-full">Đăng ký</Button>
-                        <Button
-                            variant="outline"
-                            type="reset"
-                            className="w-full"
-                        >
-                            Nhập lại
-                        </Button>
-                    </form>
-                </FormProvider>
-            </motion.div>
-        </div>
+                    <Button className="w-full bg-blue-700 hover:bg-blue-600">
+                        Đăng ký
+                    </Button>
+                </form>
+                <p className="mt-4">
+                    Đã có tài khoản?{' '}
+                    <Link to="/login">
+                        <span className="text-blue-600">Đăng nhập</span>
+                    </Link>
+                </p>
+            </FormProvider>
+        </motion.div>
     );
 }
