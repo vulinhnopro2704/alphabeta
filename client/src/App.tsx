@@ -5,9 +5,7 @@ import LoginScreen from './features/auth/login/login-screen.tsx';
 import SignUpScreen from './features/auth/signup/sign-up-screen.tsx';
 import { Toaster } from './components/ui/sonner.tsx';
 import Homepage from './features/homepage/homepage.tsx';
-import ProtectedRoute from './components/protected-route.tsx';
 import Layout from './features/layout.tsx';
-import useAuthRefresh from './hooks/use-auth-refresh.ts';
 import { Loader } from 'lucide-react';
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router';
 
@@ -36,16 +34,16 @@ function AnimatedRoutes() {
                     />
                 </Route>
                 <Route element={<Layout />}>
-                    <Route element={<ProtectedRoute />}>
-                        <Route
-                            index
-                            element={
-                                <PageTransition>
-                                    <Homepage />
-                                </PageTransition>
-                            }
-                        />
-                    </Route>
+                    {/* <Route element={<ProtectedRoute />}> */}
+                    <Route
+                        index
+                        element={
+                            <PageTransition>
+                                <Homepage />
+                            </PageTransition>
+                        }
+                    />
+                    {/* </Route> */}
                 </Route>
             </Routes>
         </AnimatePresence>
@@ -68,9 +66,9 @@ function PageTransition({ children }: { children: React.ReactNode }) {
 }
 
 function App() {
-    const loading = useAuthRefresh();
+    // const loading = useAuthRefresh();
 
-    if (loading) {
+    if (false) {
         return (
             <div className="flex justify-center items-center h-screen bg-gray-100">
                 <motion.div

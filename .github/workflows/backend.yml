@@ -1,0 +1,73 @@
+name: Build and Deploy Backend
+
+on:
+    push:
+        branches: ['main']
+    pull_request:
+        branches: ['main']
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        environment: production
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Set up JDK 21
+              uses: actions/setup-java@v3
+              with:
+                  distribution: 'temurin'
+                  java-version: '21'
+
+            - name: Grant execute permission to Gradle wrapper
+              working-directory: ./server
+              run: chmod +x gradlew
+
+            - name: Build Backend with Gradle
+              working-directory: ./server
+              run: |
+                  ./gradlew clean build -x test
+
+            - name: Build Docker image for Backend
+              working-directory: ./server
+              run: |
+                  docker build -t ${{ secrets.DOCKER_USERNAME }}/server:latest .
+
+            - name: Log in to Docker Hub
+              run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+            - name: Push Docker image to Docker Hub
+              run: |
+                  docker push ${{ secrets.DOCKER_USERNAME }}/server:latest
+
+            - name: Deploy to Server via SSH
+              env:
+                  IP_SERVER: ${{ secrets.IP_SERVER }}
+                  SERVER_USERNAME: ${{ secrets.SERVER_USERNAME }}
+                  SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+                  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+                  SSH_PORT: ${{ secrets.SSH_PORT }}
+              run: |
+                  echo "$SSH_PRIVATE_KEY" > private_key.pem
+                  chmod 600 private_key.pem
+
+                  echo "Deploying new server version..." > deploy.sh
+                  echo "docker pull $DOCKER_USERNAME/server:latest" >> deploy.sh
+                  echo "docker ps -q --filter name=server | xargs -r docker stop" >> deploy.sh
+                  echo "docker ps -aq --filter name=server | xargs -r docker rm" >> deploy.sh
+                  echo "docker run -d -p 8080:8080 --name server $DOCKER_USERNAME/server:latest" >> deploy.sh
+
+                  # Copy script lên server
+                  scp -i private_key.pem -o StrictHostKeyChecking=no -P $SSH_PORT deploy.sh $SERVER_USERNAME@$IP_SERVER:/tmp/deploy.sh
+
+                  # SSH vào server và thực thi script
+                  ssh -i private_key.pem -o StrictHostKeyChecking=no -p $SSH_PORT $SERVER_USERNAME@$IP_SERVER << EOF
+                    chmod +x /tmp/deploy.sh
+                    /tmp/deploy.sh
+                    rm -f /tmp/deploy.sh
+                  EOF
+
+                  rm -f private_key.pem deploy.sh
